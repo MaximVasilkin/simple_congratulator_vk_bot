@@ -1,0 +1,28 @@
+version: '3.9'
+
+volumes:
+  redis_data:
+
+networks:
+  backend:
+
+services:
+  vk_bot:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    volumes:
+      - ./app/vk_bot.log:/vk_bot/vk_bot.log
+    networks:
+      - backend
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: always

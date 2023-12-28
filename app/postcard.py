@@ -1,6 +1,6 @@
 from random import choice
 from PIL import Image, ImageDraw, ImageFont, JpegImagePlugin
-import io
+import hashlib
 
 
 class BasePostcard:
@@ -55,23 +55,40 @@ class BasePostcard:
         self.font_scale_step = font_scale_step
         self.font_coefficient = font_coefficient
 
-    def __enter__(self):
-        self.file = io.BytesIO()
-        self.create_postcard().save(self.file, format='JPEG')
-        self.file.seek(0)
-        return self.file
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.file.close()
-
-    def create_text(self) -> str:
+    def get_hash(self, text, algorithm='sha256'):
         """
-        Метод возвращает случайное поздравление в виде одной строки (на основе данных из self.text_data).
+        Метод принимает текстовую строку и возвращает её хеш.
+
+        :param text: текст для хеширования.
+        :param algorithm: алгоритм хеширования.
+        :return: хеш текста.
+        """
+
+        hash_object = hashlib.new(algorithm)
+        hash_object.update(text.encode())
+        return hash_object.hexdigest()
+
+    def create_text(self, hash_algorithm: str | None = 'sha256') -> tuple[str, str] | str:
+        """
+        Метод создаёт случайное текстовое поздравление на основе данных self.text_data
+
+        :param hash_algorithm: алгоритм хеширования текста
+
+        :return: Если указан параметр hash_algorithm, метод возвращает кортеж:
+        Случайное поздравление в виде одной строки (на основе данных из self.text_data),
+        Hash (путь к шаблону-картинке + путь к шрифту + текст поздравления).
+
+        Если параметр hash_algorithm не указан, метод возвращает строку (поздравление).
         """
         congratulation = ''
         for k, v in self.text_data.items():
             congratulation += f'{k} {choice(v)}! '
-        return congratulation + 'Ура!'
+        congratulation += 'Ура!'
+
+        if hash_algorithm:
+            return congratulation, self.get_hash(text=self.image_path + self.font_path + congratulation,
+                                                 algorithm=hash_algorithm)
+        return congratulation
 
     def adaptive_text(self, text: str, draw: ImageDraw) -> (str, ImageFont):
         """
@@ -108,15 +125,20 @@ class BasePostcard:
             else:
                 return stringed_text, font
 
-    def create_postcard(self) -> JpegImagePlugin.JpegImageFile:
+    def create_postcard(self, text: str | None = None) -> JpegImagePlugin.JpegImageFile:
         """
-        Метод создаёт открытку со случайным поздравлением:
-        Создаёт случайный текст;
+        Метод создаёт открытку с указанным поздравлением:
+
         Адаптирует размер текста под картинку-шаблон;
         Добавляет текст на картинку.
+
+        :param text: текст поздравления
         :return: изображение открытки
         """
-        text = self.create_text()
+
+        if text is None:
+            text = self.create_text(hash_algorithm=None)
+
         with Image.open(self.image_path) as image:
             draw = ImageDraw.Draw(image)
             text, font = self.adaptive_text(text, draw)
