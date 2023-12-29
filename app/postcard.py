@@ -191,3 +191,25 @@ new_year_blue_postcard = NewYearPostCard(image_path='templates/1.jpg',
                                          align='center',
                                          font_scale_step=3,
                                          font_coefficient=1.55)
+
+new_year_red_postcard = NewYearPostCard(image_path='templates/2.jpg',
+                                        text_position=(1021, 568),
+                                        text_max_size=(1166, 703),
+                                        font_path='fonts/astra.ttf',
+                                        font_color=(255, 255, 255),
+                                        anchor='mm',
+                                        align='center',
+                                        font_scale_step=3,
+                                        font_coefficient=1.45)
+
+new_year_green_postcard = NewYearPostCard(image_path='templates/3.jpg',
+                                          text_position=(1350, 684),
+                                          text_max_size=(1100, 1240),
+                                          font_path='fonts/aquarelle.ttf',
+                                          font_color=(0, 0, 0),
+                                          anchor='mm',
+                                          align='center',
+                                          font_scale_step=3,
+                                          font_coefficient=1.25)
+
+NEW_YEAR_CARDS = (new_year_red_postcard, new_year_green_postcard, new_year_blue_postcard)

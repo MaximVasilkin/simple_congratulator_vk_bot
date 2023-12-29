@@ -1,11 +1,12 @@
 import io
+from random import choice
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from time import sleep
 from requests.exceptions import ReadTimeout
 from socket import timeout
 from urllib3.exceptions import ReadTimeoutError
-from postcard import new_year_blue_postcard
+from postcard import NEW_YEAR_CARDS
 from keyboards import keyboard_get_postcard
 from redis_db import redis_storage
 import logging
@@ -66,7 +67,7 @@ class VkBot:
         return link
 
     def get_or_create_postcard(self, peer_id, postcard):
-        random_congratulation,  hash_congratulation = new_year_blue_postcard.create_text()
+        random_congratulation,  hash_congratulation = postcard.create_text()
         image_link, status = self.get_image_link(hash_congratulation)
         # при неполадке с БД возвращаем None, не пытаясь выгрузить картинку в интернет
         if status == ResultStatus.error:
@@ -92,7 +93,8 @@ class VkBot:
                     if event.type == VkBotEventType.MESSAGE_NEW:
                         message = event.message
                         peer_id = message['peer_id']
-                        self.send_postcard(peer_id, new_year_blue_postcard)
+                        random_postcard = choice(NEW_YEAR_CARDS)
+                        self.send_postcard(peer_id, random_postcard)
 
             except (ReadTimeout, timeout, ReadTimeoutError):
                 sleep(15)
